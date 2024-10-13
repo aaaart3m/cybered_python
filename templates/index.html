@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan Tool</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/ansi_up@5.2.1/ansi_up.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="main-title">URL</h1>
+        <h3 class="sub-title">for scan</h3>
+        <form id="scanForm">
+            <div class="input-group">
+                <input type="text" id="url" placeholder="http://example.com" required>
+            </div>
+
+            <div class="method-section">
+                <label style="font-size: 25px; font-weight: bold;">SCAN METHOD</label>
+                <div class="method-options">
+                    <label><input type="radio" name="method" value="python" checked> Python</label>
+                    <label><input type="radio" name="method" value="external"> External tools</label>
+                </div>
+            </div>
+
+            <div class="type-section">
+                <label style="font-size: 25px; font-weight: bold; margin-bottom: 10px">SCAN TYPE</label>
+                <select id="scanType"></select>
+            </div>
+
+            <div class="submit-section">
+                <button type="submit" id="scanButton">SCAN</button>
+            </div>
+        </form>
+
+        <h2 class="main-title">RESULT</h2>
+        <div class="result-box">
+            <pre id="result"></pre>
+        </div>
+    </div>
+
+    <script src="/static/main.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,130 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+.container {
+    max-width: 600px;
+    margin: 40px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.main-title {
+    font-size: 5em;
+    margin: 0;
+}
+
+.sub-title {
+    margin-top: -20px;
+    font-size: 1.5em;
+    margin-bottom: 10px;
+}
+
+.input-group {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+input[type="text"] {
+    color: rgb(0, 0, 0);
+    border: 3px solid rgb(0, 0, 0);
+    background-color: rgb(255, 255, 255);
+    border-radius: 15px;
+    font-size: 16px;
+    font-weight: 400;
+    height: 50px;
+    width: 100%;
+    padding: 10px;
+    text-align: center;
+}
+
+input::placeholder {
+    font-size: 25px;
+    color: rgb(180, 180, 180);
+}
+
+.method-section, .type-section {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
+
+.method-options {
+    display: flex;
+    gap: 20px;
+    margin-top: 10px;
+}
+
+.method-options label {
+    font-size: 2em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+input[type="radio"] {
+    width: 30px;
+    height: 30px;
+}
+
+select {
+    color: rgb(0, 0, 0);
+    border: 3px solid rgb(0, 0, 0);
+    background-color: rgb(255, 255, 255);
+    border-radius: 15px;
+    font-size: 16px;
+    font-weight: 400;
+    height: 50px;
+    width: 100%;
+    padding: 10px;
+    text-align: center;
+}
+
+button {
+    padding: 0px 15px;
+    display: block;
+    width: 200px;
+    font-weight: 700;
+    font-size: 18px;
+    height: 50px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 30px;
+    background-color: black;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #333;
+}
+
+.result-box {
+    text-align: left;
+    background-color: #eaeaea;
+    padding: 20px;
+    border-radius: 5px;
+    min-height: 200px;
+}
+
+.result-box img {
+    max-width: 100%;
+    border-radius: 10px;
+    border: 2px solid #000;
+}
+
+pre {
+    font-family: monospace;
+    white-space: pre-wrap;
+}
