@@ -68,14 +68,13 @@ async def check_directory(session: aiohttp.ClientSession, url: str, logger: logg
 
 async def directory_bruteforce(url: str, wordlist: str, logger: logging.Logger):
     async with aiohttp.ClientSession() as session:
+        parsed_url = urlparse(url)
+        url_base = f'{parsed_url.scheme}://{parsed_url.netloc}'
         logger.debug('starting directory bruteforce...')
         with open(wordlist, 'r') as wl:
             tasks = []
             for directory in wl:
-                if url[-1] == '/':
-                    url_dir = url + directory
-                else:
-                    url_dir = f'{url}/{directory}'
+                url_dir = f'{url_base}/{directory}'
                 url_status = check_directory(session=session, url=url_dir, logger=logger)
                 if url_status is not None:
                     tasks.append(url_status)
