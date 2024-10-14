@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.websockets import WebSocketDisconnect
 
 from urllib.parse import urlparse, urlunparse
+from ipaddress import ip_address
 
 import external_methods
 import python_methods
@@ -50,18 +51,18 @@ async def websocket_endpoint(websocket: WebSocket):
             if method == 'python':
                 if scan_type == 'availability':
                     logger.info('Checking url availability with python')
-                    result = await python_methods.check_available(url)
+                    result = await python_methods.check_available(url, logger)
                 elif scan_type == 'directories':
                     logger.info('Searching directories with python')
                     url = parsed_url.scheme + '://' + parsed_url.netloc + parsed_url.path
-                    result_list = await python_methods.directory_bruteforce(url, 'wordlist.txt')
+                    result_list = await python_methods.directory_bruteforce(url, 'wordlist.txt', logger)
                     result = [status for status in result_list if status]
                     if not result:
                         result = "Directories aren't found"
                 elif scan_type == 'subdomains':
                     logger.info('Searching subdomains with python')
                     url = parsed_url.scheme + '://' + parsed_url.netloc
-                    result_list = await python_methods.subdomains_bruteforce(url, 'wordlist.txt')
+                    result_list = await python_methods.subdomains_bruteforce(url, 'wordlist.txt', logger)
                     result = [status for status in result_list if status and 'Error' not in status]
                     if not result:
                         result = "Subdomains aren't found"
@@ -71,13 +72,11 @@ async def websocket_endpoint(websocket: WebSocket):
                     result = await external_methods.check_available(url, logger)
                 elif scan_type == 'version':
                     logger.info('Getting web server versions with nmap')
-                    if ':' in parsed_url.netloc:
-                        port = parsed_url.netloc.split(':')[-1]
-                        nmap_url = parsed_url.netloc.split(':')[-2]
+                    if parsed_url.port:
+                        port = str(parsed_url.port)
                     else:
                         port = '80,443'
-                        nmap_url = parsed_url.netloc
-                    result = await external_methods.check_version(nmap_url, port, logger)
+                    result = await external_methods.check_version(parsed_url.hostname, port, logger)
                 elif scan_type == 'screenshot':
                     logger.info("Getting web page screenshot with gowitness by user's url")
                     screenshot = await external_methods.get_screenshot(url, logger)
@@ -87,9 +86,17 @@ async def websocket_endpoint(websocket: WebSocket):
                     logger.info('Checking vulnerabilities with nuclei')
                     result = await external_methods.run_nuclei(url, logger)
                 elif scan_type == 'subdomains':
-                    logger.info('Searching subdomains with ffuf')
-                    url = parsed_url.scheme + '://FUZZ.' + parsed_url.netloc
-                    result = await external_methods.get_subdomains(url, logger)
+                    try:
+                        ip_address(parsed_url.hostname)
+                        logger.error('URL is IP address. Skip subdomain brute')
+                        await websocket.send_json({'type': 'error',
+                                                   'data': 'URL in IP format. '
+                                                           'To search subdomains set URL in domain name format'})
+                        continue
+                    except ValueError:
+                        logger.info('Searching subdomains with ffuf')
+                        url = parsed_url.scheme + '://FUZZ.' + parsed_url.netloc
+                        result = await external_methods.get_subdomains(url, logger)
                 elif scan_type == 'directories':
                     logger.info('Searching directories with ffuf')
                     url = parsed_url.scheme + '://' + parsed_url.netloc + '/FUZZ'
