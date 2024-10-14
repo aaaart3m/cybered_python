@@ -3,28 +3,22 @@ import asyncio
 from urllib.parse import urlparse
 
 
-# async def check_available(url: str, websocket):
-#     await websocket.send_text(f"Check {url}")
-#     try:
-#         async with aiohttp.ClientSession() as session:
-#             async with session.get(url) as response:
-#                 await websocket.send_text(f"{url}: Status {response.status}, {response.headers}")
-#     except aiohttp.ClientSSLError as ssl_err:
-#         await websocket.send_text(f"{url}: Error {ssl_err}")
-#     except aiohttp.ClientConnectorError as connect_err:
-#         await websocket.send_text(f"{url}: Error {connect_err}")
-
-
 async def check_available(url: str):
     try:
+        parsed_url = urlparse(url)
+        url_domain = parsed_url.scheme + '://' + '.'.join(parsed_url.netloc.split('.')[-2:])
 
         async with aiohttp.ClientSession() as session:
             async with session.get(url=url) as response:
-                return f"{url}: Status {response.status}, Length {len(await response.text())}"
+                async with session.get(url=url_domain) as response_dom:
+                    return (f"{url}: Status {response.status}, Length {len(await response.text())}\n"
+                            f"{url_domain}: Status {response_dom.status} Length {len(await response_dom.text())}")
     except aiohttp.ClientSSLError as ssl_err:
         return f"{url}: Error {ssl_err}"
-    except aiohttp.ClientConnectorError as connect_err:
-        return f"{url}: Error {connect_err}"
+    except aiohttp.ClientConnectorError as client_connect_err:
+        return f"{url}: Error {client_connect_err}"
+    except aiohttp.ServerDisconnectedError as server_connect_err:
+        return f"{url}: Error {server_connect_err}"
 
 
 async def check_directory(session: aiohttp.ClientSession, url: str):
@@ -76,14 +70,9 @@ async def subdomains_bruteforce(url: str, wordlist: str):
 
 async def main():
     result_list = await directory_bruteforce('http://vulnweb.com', 'wordlist.txt')
-    # result_list = await subdomains_bruteforce('http://vulnweb.com', 'wordlist.txt')
     result = [status for status in result_list if status and 'Error' not in status]
     return result
-    # for stat in result:
-    #     if stat:
-    #         print(stat)
+
 
 if __name__ == '__main__':
-    # asyncio.run(check_version('http://188.64.151.65/', '6875'))
-    # print(asyncio.run(check_available_direct('http://188.64.151.65:6875/')))
     print(asyncio.run(main()))

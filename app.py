@@ -35,6 +35,11 @@ async def websocket_endpoint(websocket: WebSocket):
             if not parsed_url.scheme:
                 parsed_url = urlparse('http://' + url)
 
+            if not parsed_url.netloc:
+                logger.error('Invalid URL: Missing host')
+                await websocket.send_json({'type': 'error', 'data': 'Invalid URL'})
+                continue
+
             # TODO: add xss and injection protection
 
             url = str(urlunparse(parsed_url))
@@ -42,21 +47,19 @@ async def websocket_endpoint(websocket: WebSocket):
             result = None
             start_time = time.time()
 
-            if not parsed_url.netloc:
-                logger.error('Invalid URL: Missing host')
-                await websocket.send_json({'type': 'error', 'data': 'Invalid URL'})
-                continue
-
             if method == 'python':
                 if scan_type == 'availability':
+                    logger.info('Checking url availability with python')
                     result = await python_methods.check_available(url)
                 elif scan_type == 'directories':
+                    logger.info('Searching directories with python')
                     url = parsed_url.scheme + '://' + parsed_url.netloc + parsed_url.path
                     result_list = await python_methods.directory_bruteforce(url, 'wordlist.txt')
                     result = [status for status in result_list if status]
                     if not result:
                         result = "Directories aren't found"
                 elif scan_type == 'subdomains':
+                    logger.info('Searching subdomains with python')
                     url = parsed_url.scheme + '://' + parsed_url.netloc
                     result_list = await python_methods.subdomains_bruteforce(url, 'wordlist.txt')
                     result = [status for status in result_list if status and 'Error' not in status]
@@ -64,23 +67,42 @@ async def websocket_endpoint(websocket: WebSocket):
                         result = "Subdomains aren't found"
             else:  # method == 'external'
                 if scan_type == 'availability':
+                    logger.info('Checking url availability with httpx')
                     result = await external_methods.check_available(url, logger)
                 elif scan_type == 'version':
-                    result = await external_methods.check_version(parsed_url.netloc, '80,443', logger)
+                    logger.info('Getting web server versions with nmap')
+                    if ':' in parsed_url.netloc:
+                        port = parsed_url.netloc.split(':')[-1]
+                        nmap_url = parsed_url.netloc.split(':')[-2]
+                    else:
+                        port = '80,443'
+                        nmap_url = parsed_url.netloc
+                    result = await external_methods.check_version(nmap_url, port, logger)
                 elif scan_type == 'screenshot':
+                    logger.info("Getting web page screenshot with gowitness by user's url")
                     screenshot = await external_methods.get_screenshot(url, logger)
                     await websocket.send_json({'type': 'screenshot', 'data': screenshot})
                     continue
                 elif scan_type == 'nuclei':
+                    logger.info('Checking vulnerabilities with nuclei')
                     result = await external_methods.run_nuclei(url, logger)
                 elif scan_type == 'subdomains':
+                    logger.info('Searching subdomains with ffuf')
                     url = parsed_url.scheme + '://FUZZ.' + parsed_url.netloc
                     result = await external_methods.get_subdomains(url, logger)
                 elif scan_type == 'directories':
+                    logger.info('Searching directories with ffuf')
                     url = parsed_url.scheme + '://' + parsed_url.netloc + '/FUZZ'
                     result = await external_methods.directory_bruteforce(url, logger)
                 elif scan_type == 'sqlmap':
-                    result = await external_methods.run_sqlmap(url, logger)
+                    logger.info('Searching sql injections with sqlmap')
+                    if not parsed_url.query:
+                        logger.error('Invalid URL: Missing parameters for sqlmap')
+                        await websocket.send_json({'type': 'error',
+                                                   'data': 'Invalid URL: Missing parameters for sqlmap'})
+                        continue
+                    else:
+                        result = await external_methods.run_sqlmap(url, logger)
 
             end_time = time.time()
             duration = end_time - start_time
