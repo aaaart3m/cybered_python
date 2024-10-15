@@ -1,7 +1,9 @@
 # Pentest multitool  
 
 This project is homework for python classes on CyberEd.  
-[![Demonstartion](https://img.youtube.com/vi/sEAz_K_ZFvg/0.jpg)](https://www.youtube.com/watch?v=sEAz_K_ZFvg) to the video with demonstration
+Add video to demonstrate how it works:  
+[![Demonstartion](https://img.youtube.com/vi/sEAz_K_ZFvg/0.jpg)](https://www.youtube.com/watch?v=sEAz_K_ZFvg)  
+
 Web application runs on fastapi and uvicorn. Scanner based on python libs adn some utilities:  
 
 - httpx;
