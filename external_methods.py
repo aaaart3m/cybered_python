@@ -30,7 +30,7 @@ async def check_version(url: str, port: str, logger: logging.Logger):
     nmap = ["nmap",
             "-sV",
             f'-p{port}',
-            '--scripts',
+            '--script',
             'vulners',
             url]
     logger.debug(f'starting nmap ...')
@@ -65,7 +65,10 @@ async def get_screenshot(url: str, logger: logging.Logger):
     if stderr:
         logger.debug(stderr.decode())
 
-    return f'{url.replace(":", "-").replace("/", "-")}.jpeg'
+    for char in ':/?=&<>"\'();':
+        url = url.replace(char, '-')
+
+    return f'{url}.jpeg'
 
 
 async def run_nuclei(url: str, logger: logging.Logger):
@@ -135,4 +138,3 @@ async def run_sqlmap(url: str, logger: logging.Logger):
 
 if __name__ == '__main__':
     pass
-
